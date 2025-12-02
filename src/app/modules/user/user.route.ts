@@ -38,4 +38,14 @@ router.post(
   }
 );
 
+router.patch(
+  "/update-my-profile",
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TRAVELER),
+  fileUploader.upload.single("file"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    return UserController.updateMyProfie(req, res, next);
+  }
+);
+
 export const userRoutes = router;

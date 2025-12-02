@@ -58,9 +58,24 @@ const getMyProfile = catchAsync(
     });
   }
 );
+const updateMyProfie = catchAsync(
+  async (req: Request & { user?: IJwtPayload }, res: Response) => {
+    const user = req.user;
+
+    const result = await UserService.updateMyProfie(user as IJwtPayload, req);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My profile updated!",
+      data: result,
+    });
+  }
+);
 export const UserController = {
   createTraveler,
   createAdmin,
   getAllFromDB,
   getMyProfile,
+  updateMyProfie,
 };

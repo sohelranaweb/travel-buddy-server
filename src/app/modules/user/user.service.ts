@@ -7,6 +7,7 @@ import { prisma } from "../../shared/prisma";
 import { paginationHelper } from "../../helpers/paginationHelpers";
 import { userSearchableFields } from "./user.constant";
 import { IAuthUser } from "../../interfaces/common";
+import { IJwtPayload } from "../../types/common";
 
 const createTraveler = async (req: Request) => {
   const file = req.file;
@@ -212,9 +213,51 @@ const getMyProfile = async (user: IAuthUser) => {
 
   return { ...userInfo, ...profileInfo };
 };
+const updateMyProfie = async (user: IJwtPayload, req: Request) => {
+  const userInfo = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user?.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  const file = req.file;
+  if (file) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+    req.body.profilePhoto = uploadToCloudinary?.secure_url;
+  }
+
+  let profileInfo;
+
+  if (userInfo.role === UserRole.SUPER_ADMIN) {
+    profileInfo = await prisma.admin.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
+    });
+  } else if (userInfo.role === UserRole.ADMIN) {
+    profileInfo = await prisma.admin.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
+    });
+  } else if (userInfo.role === UserRole.TRAVELER) {
+    profileInfo = await prisma.traveler.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
+    });
+  }
+
+  return { ...profileInfo };
+};
 export const UserService = {
   createTraveler,
   createAdmin,
   getAllFromDB,
   getMyProfile,
+  updateMyProfie,
 };
