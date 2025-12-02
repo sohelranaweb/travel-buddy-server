@@ -4,6 +4,8 @@ import sendResponse from "../../shared/sendResponse";
 import { UserService } from "./user.service";
 import pick from "../../shared/pick";
 import { userFilterableFields } from "./user.constant";
+import { IJwtPayload } from "../../types/common";
+import httpStatus from "http-status";
 
 const createTraveler = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.createTraveler(req);
@@ -42,8 +44,23 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
     data: result.data,
   });
 });
+const getMyProfile = catchAsync(
+  async (req: Request & { user?: IJwtPayload }, res: Response) => {
+    const user = req.user;
+
+    const result = await UserService.getMyProfile(user as IJwtPayload);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My profile data fetched!",
+      data: result,
+    });
+  }
+);
 export const UserController = {
   createTraveler,
   createAdmin,
   getAllFromDB,
+  getMyProfile,
 };

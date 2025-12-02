@@ -2,10 +2,11 @@ import { Request } from "express";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helpers/fileUploader";
 import config from "../../../config";
-import { Admin, Prisma, UserRole } from "@prisma/client";
+import { Admin, Prisma, UserRole, UserStatus } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
 import { paginationHelper } from "../../helpers/paginationHelpers";
 import { userSearchableFields } from "./user.constant";
+import { IAuthUser } from "../../interfaces/common";
 
 const createTraveler = async (req: Request) => {
   const file = req.file;
@@ -141,8 +142,79 @@ const getAllFromDB = async (params: any, options: any) => {
   };
 };
 
+const getMyProfile = async (user: IAuthUser) => {
+  const userInfo = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user?.email,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      email: true,
+      needPasswordChange: true,
+      role: true,
+      status: true,
+    },
+  });
+
+  let profileInfo;
+
+  if (userInfo.role === UserRole.SUPER_ADMIN) {
+    profileInfo = await prisma.admin.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profilePhoto: true,
+        contactNumber: true,
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  } else if (userInfo.role === UserRole.ADMIN) {
+    profileInfo = await prisma.admin.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profilePhoto: true,
+        contactNumber: true,
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  } else if (userInfo.role === UserRole.TRAVELER) {
+    profileInfo = await prisma.traveler.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profilePhoto: true,
+        contactNumber: true,
+        address: true,
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  return { ...userInfo, ...profileInfo };
+};
 export const UserService = {
   createTraveler,
   createAdmin,
   getAllFromDB,
+  getMyProfile,
 };
