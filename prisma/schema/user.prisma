@@ -1,0 +1,44 @@
+model User {
+        id                 String     @id @default(uuid())
+        email              String     @unique
+        password           String
+        role               UserRole
+        needPasswordChange Boolean    @default(true)
+        status             UserStatus @default(ACTIVE)
+        createdAt          DateTime   @default(now())
+        updatedAt          DateTime   @updatedAt
+        admin              Admin?
+        traveler           Traveler?
+
+        @@map("users")
+}
+
+model Admin {
+        id            String   @id @default(uuid())
+        name          String
+        email         String   @unique
+        profilePhoto  String?
+        contactNumber String
+        isDeleted     Boolean  @default(false)
+        user          User     @relation(fields: [email], references: [email])
+        createdAt     DateTime @default(now())
+        updatedAt     DateTime @updatedAt
+
+        @@map("admins")
+}
+
+model Traveler {
+        id            String   @id @default(uuid())
+        email         String   @unique
+        name          String
+        contactNumber String?
+        profilePhoto  String?
+        address       String?
+        gender        Gender?
+        isDeleted     Boolean  @default(false)
+        createdAt     DateTime @default(now())
+        updatedAt     DateTime @updatedAt
+        user          User     @relation(fields: [email], references: [email])
+
+        @@map("travelers")
+}
