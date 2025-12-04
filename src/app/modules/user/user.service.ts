@@ -254,10 +254,27 @@ const updateMyProfie = async (user: IJwtPayload, req: Request) => {
 
   return { ...profileInfo };
 };
+const changeProfileStatus = async (id: string, status: UserRole) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  const updateUserStatus = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: status,
+  });
+
+  return updateUserStatus;
+};
 export const UserService = {
   createTraveler,
   createAdmin,
   getAllFromDB,
   getMyProfile,
   updateMyProfie,
+  changeProfileStatus,
 };

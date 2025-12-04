@@ -4,6 +4,8 @@ import * as bcrypt from "bcryptjs";
 import { jwtHelpers } from "../../helpers/jwtHelper";
 import config from "../../../config";
 import { Secret } from "jsonwebtoken";
+import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status";
 const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUniqueOrThrow({
     where: {
@@ -45,6 +47,177 @@ const loginUser = async (payload: { email: string; password: string }) => {
   };
 };
 
+const refreshToken = async (token: string) => {
+  let decodedData;
+  try {
+    decodedData = jwtHelpers.verifyToken(
+      token,
+      config.jwt.refresh_secret as Secret
+    );
+  } catch (err) {
+    throw new Error("You are not authorized!");
+  }
+
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: decodedData.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  const accessToken = jwtHelpers.generateToken(
+    {
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.acc_secret as Secret,
+    config.jwt.acc_expires as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    {
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.refresh_secret as Secret,
+    config.jwt.refresh_expires as string
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+    needPasswordChange: userData.needPasswordChange,
+  };
+};
+
+const changePassword = async (user: any, payload: any) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  const isCorrectPassword: boolean = await bcrypt.compare(
+    payload.oldPassword,
+    userData.password
+  );
+
+  if (!isCorrectPassword) {
+    throw new Error("Password incorrect!");
+  }
+
+  const hashedPassword: string = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.salt_round)
+  );
+
+  await prisma.user.update({
+    where: {
+      email: userData.email,
+    },
+    data: {
+      password: hashedPassword,
+      needPasswordChange: false,
+    },
+  });
+
+  return {
+    message: "Password changed successfully!",
+  };
+};
+
+const resetPassword = async (
+  token: string,
+  payload: { id: string; password: string }
+) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: payload.id,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  const isValidToken = jwtHelpers.verifyToken(
+    token,
+    config.jwt.reset_pass_secret as Secret
+  );
+
+  if (!isValidToken) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!");
+  }
+
+  // hash password
+  const password = await bcrypt.hash(
+    payload.password,
+    Number(config.salt_round)
+  );
+
+  // update into database
+  await prisma.user.update({
+    where: {
+      id: payload.id,
+    },
+    data: {
+      password,
+      needPasswordChange: false,
+    },
+  });
+};
+const getMe = async (user: any) => {
+  const accessToken = user.accessToken;
+  const decodedData = jwtHelpers.verifyToken(
+    accessToken,
+    config.jwt.acc_secret as Secret
+  );
+
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: decodedData.email,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      needPasswordChange: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      admin: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+          contactNumber: true,
+          isDeleted: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+      traveler: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+          contactNumber: true,
+          address: true,
+          isDeleted: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  return userData;
+};
 export const AuthServices = {
   loginUser,
+  refreshToken,
+  changePassword,
+  resetPassword,
+  getMe,
 };

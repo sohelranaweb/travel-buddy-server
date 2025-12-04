@@ -39,6 +39,12 @@ router.post(
 );
 
 router.patch(
+  "/:id/status",
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  UserController.changeProfileStatus
+);
+
+router.patch(
   "/update-my-profile",
   checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TRAVELER),
   fileUploader.upload.single("file"),

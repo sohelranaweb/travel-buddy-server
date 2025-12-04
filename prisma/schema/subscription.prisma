@@ -1,0 +1,10 @@
+model SubscriptionPlan {
+        id             String   @id @default(uuid())
+        name           String // "Monthly Plan", "Yearly Plan"
+        price          Float // e.g., 10 or 100
+        durationInDays Int // 30 for monthly, 365 for yearly
+        createdAt      DateTime @default(now())
+        updatedAt      DateTime @updatedAt
+
+        @@map("subscription_plan")
+}
