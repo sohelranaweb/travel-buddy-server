@@ -1,9 +1,13 @@
-import { SubscriptionStatus } from "@prisma/client";
+import { Prisma, SubscriptionStatus } from "@prisma/client";
 import { IAuthUser } from "../../interfaces/common";
 import { prisma } from "../../shared/prisma";
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { stripe } from "../../helpers/stripe";
+import { ISubscriberFilterRequest } from "./subscribe.interface";
+import { IOptions, paginationHelper } from "../../helpers/paginationHelpers";
+import { subscriberSearchableFields } from "./subscribe.constant";
+import { IJwtPayload } from "../../types/common";
 
 const createSubscribe = async (user: IAuthUser, payload: any) => {
   const travelerData = await prisma.traveler.findFirstOrThrow({
@@ -100,12 +104,111 @@ const createSubscribe = async (user: IAuthUser, payload: any) => {
       cancel_url: `https://next.programming-hero.com/`,
     });
 
-    // return { paymentUrl: session.url };
-    console.log(session);
-    return subscriptionData;
+    return { paymentUrl: session.url };
+    // console.log(session);
+    // return subscriptionData;
+  });
+  return result;
+};
+
+const getAllFromDB = async (
+  filters: ISubscriberFilterRequest,
+  options: IOptions
+) => {
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filterData } = filters;
+
+  const andConditions = [];
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: subscriberSearchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    andConditions.push({
+      AND: Object.keys(filterData).map((key) => {
+        return {
+          [key]: {
+            equals: (filterData as any)[key],
+          },
+        };
+      }),
+    });
+  }
+  andConditions.push({
+    status: SubscriptionStatus.ACTIVE,
+  });
+
+  const whereConditions: Prisma.SubscriptionWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const result = await prisma.subscription.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      traveler: true,
+    },
+  });
+  const total = await prisma.subscription.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+const getByIdFromDB = async (id: string) => {
+  const result = await prisma.subscription.findUnique({
+    where: {
+      id,
+      status: SubscriptionStatus.ACTIVE,
+    },
+    include: {
+      traveler: true,
+    },
+  });
+  return result;
+};
+
+const getMySubscription = async (user: IJwtPayload) => {
+  const travelerInfo = await prisma.traveler.findFirstOrThrow({
+    where: {
+      email: user.email,
+      isSubscribed: true,
+    },
+  });
+  const result = await prisma.subscription.findFirstOrThrow({
+    where: {
+      travelerId: travelerInfo.id,
+    },
+    include: {
+      traveler: true,
+    },
   });
   return result;
 };
 export const SubscribeService = {
   createSubscribe,
+  getAllFromDB,
+  getByIdFromDB,
+  getMySubscription,
 };

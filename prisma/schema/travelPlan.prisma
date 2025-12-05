@@ -1,0 +1,17 @@
+model TravelPlan {
+        id          String     @id @default(uuid())
+        travelerId  String
+        destination String // Country/City
+        startDate   DateTime
+        endDate     DateTime
+        budgetMin   Float?
+        budgetMax   Float?
+        travelType  TravelType
+        description String?
+
+        traveler  Traveler @relation(fields: [travelerId], references: [id])
+        createdAt DateTime @default(now())
+        updatedAt DateTime @updatedAt
+
+        @@map("traveler_plans")
+}

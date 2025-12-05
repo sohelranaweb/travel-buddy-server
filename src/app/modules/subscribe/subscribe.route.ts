@@ -5,6 +5,20 @@ import { SubscibeController } from "./subscribe.controller";
 
 const router = express.Router();
 
+router.get(
+  "/",
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  SubscibeController.getAllFromDB
+);
+
+router.get(
+  "/my-subscribe",
+  checkAuth(UserRole.TRAVELER),
+  SubscibeController.getMySubscription
+);
+
+router.get("/:id", SubscibeController.getByIdFromDB);
+
 router.post(
   "/create-subscribe",
   checkAuth(UserRole.TRAVELER),

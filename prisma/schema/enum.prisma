@@ -26,3 +26,9 @@ enum PaymentStatus {
         PAID
         UNPAID
 }
+
+enum TravelType {
+        SOLO
+        FAMILY
+        FRIENDS
+}

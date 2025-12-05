@@ -45,6 +45,7 @@ model Traveler {
         updatedAt        DateTime       @updatedAt
         user             User           @relation(fields: [email], references: [email])
         subscriptions    Subscription[]
+        travelPlans      TravelPlan[]
 
         @@map("travelers")
 }
