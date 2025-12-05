@@ -28,8 +28,8 @@ model Admin {
 }
 
 model Traveler {
-        id               String   @id @default(uuid())
-        email            String   @unique
+        id               String         @id @default(uuid())
+        email            String         @unique
         name             String
         contactNumber    String?
         profilePhoto     String?
@@ -39,10 +39,12 @@ model Traveler {
         travelInterests  String[]
         visitedCountries String[]
         currentLocation  String?
-        isDeleted        Boolean  @default(false)
-        createdAt        DateTime @default(now())
-        updatedAt        DateTime @updatedAt
-        user             User     @relation(fields: [email], references: [email])
+        isSubscribed     Boolean        @default(false) // premium status
+        isDeleted        Boolean        @default(false)
+        createdAt        DateTime       @default(now())
+        updatedAt        DateTime       @updatedAt
+        user             User           @relation(fields: [email], references: [email])
+        subscriptions    Subscription[]
 
         @@map("travelers")
 }

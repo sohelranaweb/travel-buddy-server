@@ -14,3 +14,15 @@ enum Gender {
         MALE
         FEMALE
 }
+
+enum SubscriptionStatus {
+        ACTIVE
+        PENDING
+        EXPIRED
+        CANCELED
+}
+
+enum PaymentStatus {
+        PAID
+        UNPAID
+}

@@ -1,6 +1,6 @@
 import z from "zod";
 
-const createSubscription = z.object({
+const createSubscriptionPlan = z.object({
   body: z.object({
     name: z.string({
       error: "Name is required!",
@@ -13,6 +13,6 @@ const createSubscription = z.object({
     }),
   }),
 });
-export const SubscriptionValidation = {
-  createSubscription,
+export const SubscriptionPlanValidation = {
+  createSubscriptionPlan,
 };

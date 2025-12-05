@@ -22,4 +22,5 @@ export default {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
   },
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
 };

@@ -1,9 +1,9 @@
 import { SubscriptionPlan } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
-import { CreateSubscriptionInput } from "./subscription.interface";
+import { CreateSubscriptionInput } from "./subscriptionPlan.interface";
 import ApiError from "../../errors/ApiError";
 
-const createSubscription = async (payload: CreateSubscriptionInput) => {
+const createSubscriptionPlan = async (payload: CreateSubscriptionInput) => {
   const result = await prisma.subscriptionPlan.create({
     data: {
       name: payload.name,
@@ -49,8 +49,8 @@ const deleteFromDB = async (id: string) => {
   });
   return result;
 };
-export const SubscriptionService = {
-  createSubscription,
+export const SubscriptionPlanService = {
+  createSubscriptionPlan,
   getAllFromDB,
   getByIdFromDB,
   updateIntoDB,

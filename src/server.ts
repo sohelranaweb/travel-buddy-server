@@ -32,6 +32,10 @@ async function bootstrap() {
       }
     };
 
+    // CALL EXIT HANDLER HERE ⬇️
+    process.on("SIGTERM", exitHandler);
+    process.on("SIGINT", exitHandler);
+
     // Handle unhandled promise rejections
     process.on("unhandledRejection", (error) => {
       console.log(

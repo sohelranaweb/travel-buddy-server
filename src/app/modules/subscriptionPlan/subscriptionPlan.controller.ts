@@ -1,23 +1,28 @@
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
-import { SubscriptionService } from "./subscription.service";
+
 import sendResponse from "../../shared/sendResponse";
 import httpStatus from "http-status";
+import { SubscriptionPlanService } from "./subscriptionPlan.service";
 
-const createSubscription = catchAsync(async (req: Request, res: Response) => {
-  const payload = req.body;
-  // console.log({ payload });
-  const result = await SubscriptionService.createSubscription(payload);
+const createSubscriptionPlan = catchAsync(
+  async (req: Request, res: Response) => {
+    const payload = req.body;
+    // console.log({ payload });
+    const result = await SubscriptionPlanService.createSubscriptionPlan(
+      payload
+    );
 
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "Subscription created successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "Subscription created successfully",
+      data: result,
+    });
+  }
+);
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
-  const result = await SubscriptionService.getAllFromDB();
+  const result = await SubscriptionPlanService.getAllFromDB();
 
   sendResponse(res, {
     statusCode: 201,
@@ -29,7 +34,7 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
 
 const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await SubscriptionService.getByIdFromDB(id);
+  const result = await SubscriptionPlanService.getByIdFromDB(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -40,7 +45,7 @@ const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await SubscriptionService.updateIntoDB(id, req.body);
+  const result = await SubscriptionPlanService.updateIntoDB(id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -50,7 +55,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await SubscriptionService.deleteFromDB(id);
+  const result = await SubscriptionPlanService.deleteFromDB(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -59,8 +64,8 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const SubscriptionController = {
-  createSubscription,
+export const SubscriptionPlanController = {
+  createSubscriptionPlan,
   getAllFromDB,
   getByIdFromDB,
   updateIntoDB,

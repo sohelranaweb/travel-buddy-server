@@ -2,7 +2,8 @@ import express from "express";
 import { userRoutes } from "../modules/user/user.route";
 import { AuthRoutes } from "../modules/auth/auth.route";
 import { TravelerRoutes } from "../modules/traveler/traveler.route";
-import { SubscriptionRoutes } from "../modules/subscription/subscription.route";
+import { SubscriptionPlanRoutes } from "../modules/subscriptionPlan/subscriptionPlan.route";
+import { SubscribeRoutes } from "../modules/subscribe/subscribe.route";
 
 const router = express.Router();
 
@@ -20,8 +21,12 @@ const moduleRoutes = [
     route: TravelerRoutes,
   },
   {
-    path: "/subscription",
-    route: SubscriptionRoutes,
+    path: "/subscriptionPlan",
+    route: SubscriptionPlanRoutes,
+  },
+  {
+    path: "/subscribe",
+    route: SubscribeRoutes,
   },
 ];
 

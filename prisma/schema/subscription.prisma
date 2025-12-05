@@ -1,10 +1,45 @@
 model SubscriptionPlan {
-        id             String   @id @default(uuid())
+        id             String         @id @default(uuid())
         name           String // "Monthly Plan", "Yearly Plan"
         price          Float // e.g., 10 or 100
         durationInDays Int // 30 for monthly, 365 for yearly
-        createdAt      DateTime @default(now())
-        updatedAt      DateTime @updatedAt
+        createdAt      DateTime       @default(now())
+        updatedAt      DateTime       @updatedAt
+        Subscriptions  Subscription[]
 
         @@map("subscription_plan")
+}
+
+model Subscription {
+        id         String             @id @default(uuid())
+        travelerId String
+        planId     String
+        amount     Float
+        startDate  DateTime           @default(now())
+        endDate    DateTime
+        status     SubscriptionStatus @default(PENDING)
+
+        // Relation fields
+        traveler Traveler         @relation(fields: [travelerId], references: [id])
+        plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+
+        createdAt DateTime @default(now())
+        updatedAt DateTime @updatedAt
+        payment   Payment?
+
+        @@map("subscription")
+}
+
+model Payment {
+        id                 String        @id @default(uuid())
+        subscriptionId     String        @unique
+        subscription       Subscription  @relation(fields: [subscriptionId], references: [id])
+        amount             Float
+        transactionId      String        @unique
+        status             PaymentStatus @default(UNPAID)
+        paymentGatewayData Json?
+        createdAt          DateTime      @default(now())
+        updatedAt          DateTime      @updatedAt
+
+        @@map("payments")
 }
