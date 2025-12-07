@@ -5,6 +5,7 @@ import { TravelerRoutes } from "../modules/traveler/traveler.route";
 import { SubscriptionPlanRoutes } from "../modules/subscriptionPlan/subscriptionPlan.route";
 import { SubscribeRoutes } from "../modules/subscribe/subscribe.route";
 import { TravelPlanRoutes } from "../modules/travelPlan/travelPlan.route";
+import { AdminRoutes } from "../modules/admin/admin.route";
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const moduleRoutes = [
   {
     path: "/travelPlan",
     route: TravelPlanRoutes,
+  },
+  {
+    path: "/admin",
+    route: AdminRoutes,
   },
 ];
 

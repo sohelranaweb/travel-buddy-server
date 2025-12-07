@@ -29,7 +29,7 @@ router.post(
 
 router.post(
   "/create-admin",
-  checkAuth(UserRole.SUPER_ADMIN),
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     // console.log(JSON.parse(req.body.data));

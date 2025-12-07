@@ -1,11 +1,17 @@
 model SubscriptionPlan {
-        id             String         @id @default(uuid())
-        name           String // "Monthly Plan", "Yearly Plan"
-        price          Float // e.g., 10 or 100
-        durationInDays Int // 30 for monthly, 365 for yearly
-        createdAt      DateTime       @default(now())
-        updatedAt      DateTime       @updatedAt
-        Subscriptions  Subscription[]
+        id             String @id @default(uuid())
+        name           String
+        price          Float
+        durationInDays Int
+
+        // New fields
+        features    String[] // list of features
+        recommended Boolean  @default(false)
+        color       String?
+
+        createdAt     DateTime       @default(now())
+        updatedAt     DateTime       @updatedAt
+        Subscriptions Subscription[]
 
         @@map("subscription_plan")
 }

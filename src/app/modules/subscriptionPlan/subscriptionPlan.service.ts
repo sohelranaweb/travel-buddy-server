@@ -9,6 +9,9 @@ const createSubscriptionPlan = async (payload: CreateSubscriptionInput) => {
       name: payload.name,
       price: payload.price,
       durationInDays: payload.durationInDays,
+      features: payload.features, // string[]
+      recommended: payload.recommended, // boolean
+      color: payload.color, // string
     },
   });
   return result;
