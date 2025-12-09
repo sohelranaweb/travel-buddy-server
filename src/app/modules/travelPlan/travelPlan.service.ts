@@ -3,10 +3,15 @@ import { paginationHelper } from "../../helpers/paginationHelpers";
 import { prisma } from "../../shared/prisma";
 import { IJwtPayload } from "../../types/common";
 import httpStatus from "http-status";
-import { ITravelPlanFilterRequest } from "./travelPlan.interface";
+import {
+  ITravelPlan,
+  ITravelPlanFilterRequest,
+  IUpdateTravelPlan,
+} from "./travelPlan.interface";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { Prisma, TravelType } from "@prisma/client";
 import { travelPlanSearchableFields } from "./travelPlan.constant";
+import { IAuthUser } from "../../interfaces/common";
 interface CreateTravelPlanPayload {
   destination: string;
   startDate: Date;
@@ -185,6 +190,9 @@ const getAllFromDB = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
+    include: {
+      traveler: true,
+    },
   });
 
   // TOTAL COUNT
@@ -202,7 +210,189 @@ const getAllFromDB = async (
   };
 };
 
+const getTravelPlanById = async (travelPlanId: string) => {
+  const result = await prisma.travelPlan.findUniqueOrThrow({
+    where: {
+      id: travelPlanId,
+    },
+    include: {
+      traveler: true,
+    },
+  });
+  return result;
+};
+const getMyTravelPlans = async (
+  user: IAuthUser,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  const travelPlans = await prisma.travelPlan.findMany({
+    where: { travelerId: travelerInfo.id },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
+    include: {
+      traveler: true,
+    },
+  });
+  const total = await prisma.travelPlan.count({
+    where: { travelerId: travelerInfo.id },
+  });
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: travelPlans,
+  };
+};
+// const updateTravelPlan = async (user: IAuthUser) => {
+//   const updateTravelPlan = async (
+//     user: IAuthUser,
+//     travelPlanId: string,
+//     payload: Partial<ITravelPlan>
+//   ) => {
+//     // First, get the traveler info
+//     const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+//       where: { email: user?.email },
+//     });
+
+//     // Check if the travel plan exists and belongs to this traveler
+//     const travelPlan = await prisma.travelPlan.findFirst({
+//       where: {
+//         id: travelPlanId,
+//         travelerId: travelerInfo.id, // Ensure the plan belongs to this traveler
+//       },
+//     });
+
+//     // If not found, throw error
+//     if (!travelPlan) {
+//       throw new Error(
+//         "Travel plan not found or you don't have permission to update it"
+//       );
+//     }
+
+//     // Update the travel plan
+//     const updatedTravelPlan = await prisma.travelPlan.update({
+//       where: { id: travelPlanId },
+//       data: payload,
+//       include: {
+//         traveler: true,
+//       },
+//     });
+
+//     return updatedTravelPlan;
+//   };
+// };
+
+// const updateTravelPlan = async (
+//   user: IAuthUser,
+//   travelPlanId: string,
+//   payload: IUpdateTravelPlan
+// ) => {
+//   const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+//     where: { email: user?.email },
+//   });
+
+//   const travelPlan = await prisma.travelPlan.findFirst({
+//     where: {
+//       id: travelPlanId,
+//       travelerId: travelerInfo.id,
+//     },
+//   });
+
+//   if (!travelPlan) {
+//     throw new Error(
+//       "Travel plan not found or you don't have permission to update it"
+//     );
+//   }
+
+//   const updatedTravelPlan = await prisma.travelPlan.update({
+//     where: { id: travelPlanId },
+//     data: payload,
+//     include: {
+//       traveler: true,
+//     },
+//   });
+
+//   return updatedTravelPlan;
+// };
+
+const deleteTravelPlan = async (user: IAuthUser, travelPlanId: string) => {
+  // Get traveler info
+  const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  // Check if the travel plan exists and belongs to this traveler
+  const travelPlan = await prisma.travelPlan.findFirst({
+    where: {
+      id: travelPlanId,
+      travelerId: travelerInfo.id,
+    },
+  });
+
+  if (!travelPlan) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "Travel plan not found or you don't have permission to delete it"
+    );
+  }
+
+  // Delete the travel plan
+  await prisma.travelPlan.delete({
+    where: { id: travelPlanId },
+  });
+
+  return null;
+};
+
+const updateTravelPlan = async (
+  user: IAuthUser,
+  travelPlanId: string,
+  payload: Prisma.TravelPlanUpdateInput
+) => {
+  const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  const travelPlan = await prisma.travelPlan.findFirst({
+    where: {
+      id: travelPlanId,
+      travelerId: travelerInfo.id,
+    },
+  });
+
+  if (!travelPlan) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "Travel plan not found or you don't have permission to update it"
+    );
+  }
+
+  const updatedTravelPlan = await prisma.travelPlan.update({
+    where: { id: travelPlanId },
+    data: payload,
+    include: {
+      traveler: true,
+    },
+  });
+
+  return updatedTravelPlan;
+};
 export const TravelPlanService = {
   createTravelPlan,
   getAllFromDB,
+  getTravelPlanById,
+  getMyTravelPlans,
+  updateTravelPlan,
+  deleteTravelPlan,
 };
