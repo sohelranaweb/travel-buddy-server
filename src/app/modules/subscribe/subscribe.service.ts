@@ -161,11 +161,14 @@ const getAllFromDB = async (
           },
     include: {
       traveler: true,
+      plan: true,
     },
   });
   const total = await prisma.subscription.count({
     where: whereConditions,
   });
+
+  console.log({ result });
 
   return {
     meta: {
@@ -176,6 +179,7 @@ const getAllFromDB = async (
     data: result,
   };
 };
+
 const getByIdFromDB = async (id: string) => {
   const result = await prisma.subscription.findUnique({
     where: {
@@ -202,6 +206,7 @@ const getMySubscription = async (user: IJwtPayload) => {
     },
     include: {
       traveler: true,
+      plan: true,
     },
   });
   return result;

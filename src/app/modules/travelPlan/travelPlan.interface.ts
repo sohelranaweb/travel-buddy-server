@@ -1,9 +1,8 @@
-interface CreateTravelPlanPayload {
-  destination: string;
-  startDate: Date;
-  endDate: Date;
-  budgetMin?: number;
-  budgetMax?: number;
-  travelType: "SOLO" | "FAMILY" | "FRIENDS";
-  description?: string;
-}
+export type ITravelPlanFilterRequest = {
+  searchTerm?: string | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+  budgetMin?: string | undefined;
+  budgetMax?: string | undefined;
+  travelType?: string | undefined;
+};
