@@ -1,0 +1,75 @@
+
+
+// TRAVEL BUDDY REQUEST MODEL
+model TravelBuddyRequest {
+  id            String        @id @default(uuid())
+  travelPlanId  String
+  requesterId   String
+  status        RequestStatus @default(PENDING)
+  message       String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  travelPlan    TravelPlan    @relation(fields: [travelPlanId], references: [id], onDelete: Cascade)
+  requester     Traveler      @relation("SentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  // Constraints
+  @@unique([travelPlanId, requesterId])
+  @@index([travelPlanId])
+  @@index([requesterId])
+  @@index([status])
+  @@map("travel_buddy_requests")
+}
+
+// TRAVEL BUDDY MODEL
+model TravelBuddy {
+  id            String       @id @default(uuid())
+  travelPlanId  String
+  buddyId       String       
+  status        BuddyStatus  @default(ACTIVE)
+  joinedAt      DateTime     @default(now())
+  completedAt   DateTime?    
+  leftAt        DateTime?    
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  travelPlan    TravelPlan   @relation(fields: [travelPlanId], references: [id], onDelete: Cascade)
+  buddy         Traveler     @relation("TravelBuddies", fields: [buddyId], references: [id], onDelete: Cascade)
+  
+  // Reviews for this buddy relationship
+  reviews       Review[]
+
+  // Constraints
+  @@unique([travelPlanId, buddyId])
+  @@index([travelPlanId])
+  @@index([buddyId])
+  @@index([status])
+  @@map("travel_buddies")
+}
+
+// REVIEW MODEL
+model Review {
+  id              String       @id @default(uuid())
+  travelBuddyId   String       
+  reviewerId      String       
+  revieweeId      String       
+  rating          Int          
+  comment         String?      @db.Text
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  travelBuddy     TravelBuddy  @relation(fields: [travelBuddyId], references: [id], onDelete: Cascade)
+  reviewer        Traveler     @relation("ReviewerToTraveler", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee        Traveler     @relation("RevieweeToTraveler", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  // Constraints
+  @@unique([travelBuddyId, reviewerId])
+  @@index([travelBuddyId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([rating])
+  @@map("reviews")
+}

@@ -32,3 +32,20 @@ enum TravelType {
         FAMILY
         FRIENDS
 }
+
+enum BuddyStatus {
+  ACTIVE      // Currently traveling together বা trip শুরু হয়নি
+  COMPLETED   // Trip completed - এখন review দেওয়া যাবে
+  CANCELLED   // Buddy left or removed
+
+  @@map("buddy_status")
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+
+  @@map("request_status")
+}
