@@ -4,6 +4,7 @@ import { IAuthUser } from "../../interfaces/common";
 import sendResponse from "../../shared/sendResponse";
 import { BuddyRequestService } from "./buddy.service";
 import { RequestStatus } from "@prisma/client";
+import httpStatus from "http-status";
 
 const sendBuddyRequest = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
@@ -20,6 +21,43 @@ const sendBuddyRequest = catchAsync(
       statusCode: 201,
       success: true,
       message: "Buddy request sent successfully",
+      data: result,
+    });
+  }
+);
+
+// ============================================
+// GET MY SENT REQUESTS
+// ============================================
+const getMySentRequests = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+
+    const result = await BuddyRequestService.getMySentRequests(
+      user as IAuthUser
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Sent requests retrieved successfully",
+      data: result,
+    });
+  }
+);
+
+const getReceivedRequests = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+
+    const result = await BuddyRequestService.getReceivedRequests(
+      user as IAuthUser
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Received requests retrieved successfully",
       data: result,
     });
   }
@@ -49,7 +87,7 @@ const getBuddyRequestById = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
     const buddyRequestId = req.params.id;
-
+    // console.log({ buddyRequestId });
     const result = await BuddyRequestService.getBuddyRequestById(
       user as IAuthUser,
       buddyRequestId
@@ -64,7 +102,7 @@ const getBuddyRequestById = catchAsync(
   }
 );
 // Accept a buddy request
-const acceptBuddyRequest = catchAsync(
+const acceptBuddyRequestById = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
     const buddyRequestId = req.params.id;
@@ -85,7 +123,9 @@ const acceptBuddyRequest = catchAsync(
 );
 export const BuddyRequestController = {
   sendBuddyRequest,
+  getMySentRequests,
+  getReceivedRequests,
   getBuddyRequestsByPlan,
   getBuddyRequestById,
-  acceptBuddyRequest,
+  acceptBuddyRequestById,
 };

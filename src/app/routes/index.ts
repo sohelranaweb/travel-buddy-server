@@ -7,6 +7,7 @@ import { SubscribeRoutes } from "../modules/subscribe/subscribe.route";
 import { TravelPlanRoutes } from "../modules/travelPlan/travelPlan.route";
 import { AdminRoutes } from "../modules/admin/admin.route";
 import { BuddyRequestRoutes } from "../modules/buddy/buddy.route";
+import { TravelBuddyRoutes } from "../modules/travelBuddy/travelBuddy.route";
 
 const router = express.Router();
 
@@ -40,8 +41,12 @@ const moduleRoutes = [
     route: AdminRoutes,
   },
   {
-    path: "/travel-buddy",
+    path: "/buddy",
     route: BuddyRequestRoutes,
+  },
+    {
+    path: "/travel-buddies",
+    route: TravelBuddyRoutes,
   },
 ];
 

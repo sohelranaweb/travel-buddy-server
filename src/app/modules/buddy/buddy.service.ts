@@ -114,6 +114,70 @@ const sendBuddyRequest = async (
   return buddyRequest;
 };
 
+// GET MY SENT REQUESTS
+const getMySentRequests = async (user: IAuthUser) => {
+  const traveler = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  const requests = await prisma.travelBuddyRequest.findMany({
+    where: { requesterId: traveler.id },
+    include: {
+      travelPlan: {
+        include: {
+          traveler: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return requests;
+};
+
+// ============================================
+// GET RECEIVED REQUESTS (for my travel plans)
+// ============================================
+const getReceivedRequests = async (user: IAuthUser) => {
+  const traveler = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  const requests = await prisma.travelBuddyRequest.findMany({
+    where: {
+      travelPlan: {
+        travelerId: traveler.id,
+      },
+    },
+    include: {
+      requester: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+          bio: true,
+          averageRating: true,
+          totalReviews: true,
+          travelInterests: true,
+          visitedCountries: true,
+        },
+      },
+      travelPlan: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return requests;
+};
+
 // Get all buddy requests for a travel plan (Plan owner can see)
 const getBuddyRequestsByPlan = async (
   user: IAuthUser,
@@ -201,9 +265,9 @@ const getBuddyRequestById = async (user: IAuthUser, buddyRequestId: string) => {
       },
     },
   });
-
+  // console.log({ request });
   if (!request) {
-    throw new Error("Buddy request not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Buddy request not found");
   }
 
   // Check authorization
@@ -251,13 +315,13 @@ const acceptBuddyRequest = async (
   });
 
   if (!request) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Buddy request not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Buddy request not found");
   }
   // Check if user is the owner of the travel plan
   if (request.travelPlan.travelerId !== userId) {
     throw new ApiError(
-      httpStatus.UNAUTHORIZED,
-      "Unauthorized: Only plan owner can update request status"
+      httpStatus.FORBIDDEN,
+      "Only plan owner can update request status"
     );
   }
 
@@ -306,8 +370,12 @@ const acceptBuddyRequest = async (
               id: true,
               name: true,
               email: true,
+              profilePhoto: true,
+              bio: true,
+              averageRating: true,
             },
           },
+          travelPlan: true,
         },
       });
 
@@ -336,6 +404,9 @@ const acceptBuddyRequest = async (
               id: true,
               name: true,
               email: true,
+              profilePhoto: true,
+              bio: true,
+              averageRating: true,
             },
           },
         },
@@ -374,6 +445,8 @@ const acceptBuddyRequest = async (
 
 export const BuddyRequestService = {
   sendBuddyRequest,
+  getMySentRequests,
+  getReceivedRequests,
   getBuddyRequestsByPlan,
   getBuddyRequestById,
   acceptBuddyRequest,
