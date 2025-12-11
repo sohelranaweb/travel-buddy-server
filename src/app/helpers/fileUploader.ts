@@ -4,12 +4,13 @@ import { v2 as cloudinary } from "cloudinary";
 
 import fs from "fs";
 import config from "../../config";
+import { Request } from "express";
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req: Request, file: Express.Multer.File, cb: any) {
     cb(null, path.join(process.cwd(), "/uploads"));
   },
-  filename: function (req, file, cb) {
+  filename: function (req: Request, file: Express.Multer.File, cb: any) {
     cb(null, file.originalname);
   },
 });
