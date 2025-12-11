@@ -3,11 +3,7 @@ import { paginationHelper } from "../../helpers/paginationHelpers";
 import { prisma } from "../../shared/prisma";
 import { IJwtPayload } from "../../types/common";
 import httpStatus from "http-status";
-import {
-  ITravelPlan,
-  ITravelPlanFilterRequest,
-  IUpdateTravelPlan,
-} from "./travelPlan.interface";
+import { ITravelPlanFilterRequest } from "./travelPlan.interface";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { Prisma, TravelType } from "@prisma/client";
 import { travelPlanSearchableFields } from "./travelPlan.constant";

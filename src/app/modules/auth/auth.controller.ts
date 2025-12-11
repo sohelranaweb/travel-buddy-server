@@ -4,6 +4,7 @@ import config from "../../../config";
 import { AuthServices } from "./auth.service";
 import sendResponse from "../../shared/sendResponse";
 import httpStatus from "http-status";
+import { IAuthUser } from "../../interfaces/common";
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const accessTokenExpiresIn = config.jwt.acc_expires as string;

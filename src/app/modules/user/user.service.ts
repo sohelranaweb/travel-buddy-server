@@ -124,7 +124,6 @@ const getAllFromDB = async (params: any, options: any) => {
       status: true,
       createdAt: true,
       updatedAt: true,
-      admin: true,
       traveler: true,
     },
   });

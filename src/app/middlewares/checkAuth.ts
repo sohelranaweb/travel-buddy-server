@@ -14,7 +14,7 @@ const checkAuth = (...roles: string[]) => {
   ) => {
     try {
       const token = req.cookies.accessToken;
-      //       console.log({ token });
+      // console.log({ token });
       if (!token) {
         throw new ApiError(httpStutas.UNAUTHORIZED, "You are not authorized");
       }

@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get(
   "/",
-  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  // checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   UserController.getAllFromDB
 );
 

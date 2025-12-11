@@ -4,6 +4,7 @@ import checkAuth from "../../middlewares/checkAuth";
 import { UserRole } from "@prisma/client";
 const router = express.Router();
 
+router.get("/me", AuthController.getMe);
 router.post("/login", AuthController.loginUser);
 router.post("/refresh-token", AuthController.refreshToken);
 router.post(
@@ -12,6 +13,5 @@ router.post(
   AuthController.changePassword
 );
 router.post("/reset-password", AuthController.resetPassword);
-router.get("/me", AuthController.getMe);
 
 export const AuthRoutes = router;

@@ -8,8 +8,7 @@ model User {
         createdAt          DateTime   @default(now())
         updatedAt          DateTime   @updatedAt
         admin              Admin?
-        traveler           Traveler?  @relation(fields: [travelerId], references: [id])
-        travelerId         String?
+        traveler           Traveler?
 
         @@map("users")
 }
@@ -46,9 +45,14 @@ model Admin {
 //         updatedAt        DateTime @updatedAt
 //         user             User     @relation(fields: [email], references: [email])
 
-//         averageRating Float?         @default(0) // Average review rating
-//         totalReviews  Int            @default(0) // Total reviews received
-//         subscriptions Subscription[]
+//         averageRating       Float?               @default(0) // Average review rating
+//         totalReviews        Int                  @default(0) // Total reviews received
+//         subscriptions       Subscription[]
+//         travelBuddyRequests TravelBuddyRequest[]
+//         travelBuddies       TravelBuddy[]
+//         reviews             Review[]
+//         reviews             Review[]
+//         travelPlans         TravelPlan[]
 
 //         @@map("travelers")
 // }
@@ -85,7 +89,7 @@ model Traveler {
         // Relations - Reviews
         reviewsGiven    Review[]       @relation("ReviewerToTraveler")
         reviewsReceived Review[]       @relation("RevieweeToTraveler")
-        users           User[]
+        user            User           @relation(fields: [email], references: [email])
         subscriptions   Subscription[]
 
         @@index([email])
