@@ -31,7 +31,16 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "stripe": "^20.0.0",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.5.0",
+    "prisma": "^6.19.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
