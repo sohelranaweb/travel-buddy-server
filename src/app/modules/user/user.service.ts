@@ -219,7 +219,7 @@ const updateMyProfie = async (user: IJwtPayload, req: Request) => {
       status: UserStatus.ACTIVE,
     },
   });
-
+  console.log({ userInfo });
   const file = req.file;
   if (file) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
