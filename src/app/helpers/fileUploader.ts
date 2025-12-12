@@ -7,15 +7,15 @@ import config from "../../config";
 import { Request } from "express";
 
 const storage = multer.diskStorage({
-  destination: function (req: Request, file: Express.Multer.File, cb: any) {
+  destination: function (req: Request, file, cb) {
     cb(null, path.join(process.cwd(), "/uploads"));
   },
-  filename: function (req: Request, file: Express.Multer.File, cb: any) {
+  filename: function (req: Request, file, cb) {
     cb(null, file.originalname);
   },
 });
 
-async function uploadToCloudinary(file: Express.Multer.File) {
+async function uploadToCloudinary(file: any) {
   // Configuration
   cloudinary.config({
     cloud_name: config.cloudinary.cloud_name,
