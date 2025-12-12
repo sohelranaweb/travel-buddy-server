@@ -11,7 +11,7 @@ import { PaymentController } from "./app/modules/payment/payment.controller";
 const app: Application = express();
 app.use(cookieParser());
 
-// test comment 
+// test comment
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -19,7 +19,10 @@ app.post(
 );
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://travel-buddy-client-taupe.vercel.app",
+    ],
     credentials: true,
   })
 );
