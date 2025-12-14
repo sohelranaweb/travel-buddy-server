@@ -10,6 +10,7 @@ import { subscriberSearchableFields } from "./subscribe.constant";
 import { IJwtPayload } from "../../types/common";
 import config from "../../../config";
 
+// Create Subscription
 const createSubscribe = async (user: IAuthUser, payload: any) => {
   const travelerData = await prisma.traveler.findFirstOrThrow({
     where: {
