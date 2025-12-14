@@ -23,4 +23,9 @@ export default {
     api_key: process.env.CLOUDINARY_API_KEY,
   },
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET_KEY,
+  payment: {
+    payment_success_url: process.env.PAYMENT_SUCCESS_LINK,
+    payment_failed_url: process.env.PAYMENT_FAILED_LINK,
+  },
 };

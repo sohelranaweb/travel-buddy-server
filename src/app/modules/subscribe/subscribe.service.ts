@@ -8,6 +8,7 @@ import { ISubscriberFilterRequest } from "./subscribe.interface";
 import { IOptions, paginationHelper } from "../../helpers/paginationHelpers";
 import { subscriberSearchableFields } from "./subscribe.constant";
 import { IJwtPayload } from "../../types/common";
+import config from "../../../config";
 
 const createSubscribe = async (user: IAuthUser, payload: any) => {
   const travelerData = await prisma.traveler.findFirstOrThrow({
@@ -100,8 +101,8 @@ const createSubscribe = async (user: IAuthUser, payload: any) => {
         travelerId: travelerData.id,
         paymentId: paymentData.id,
       },
-      success_url: `https://www.programming-hero.com/`,
-      cancel_url: `https://next.programming-hero.com/`,
+      success_url: config.payment.payment_success_url,
+      cancel_url: config.payment.payment_failed_url,
     });
 
     return { paymentUrl: session.url };
