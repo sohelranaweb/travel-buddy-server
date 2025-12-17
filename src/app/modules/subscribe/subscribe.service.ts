@@ -199,7 +199,7 @@ const getMySubscription = async (user: IJwtPayload) => {
   const travelerInfo = await prisma.traveler.findFirstOrThrow({
     where: {
       email: user.email,
-      isSubscribed: true,
+      // isSubscribed: true,
     },
   });
   const result = await prisma.subscription.findFirstOrThrow({
