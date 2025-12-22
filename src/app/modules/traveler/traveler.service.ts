@@ -53,6 +53,9 @@ const getAllFromDB = async (
         : {
             createdAt: "desc",
           },
+    include: {
+      reviewsReceived: true,
+    },
   });
   const total = await prisma.traveler.count({
     where: whereConditions,
