@@ -113,40 +113,124 @@ const createSubscribe = async (user: IAuthUser, payload: any) => {
   return result;
 };
 
+// const getAllFromDB = async (
+//   filters: ISubscriberFilterRequest,
+//   options: IOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelper.calculatePagination(options);
+//   const { searchTerm, ...filterData } = filters;
+
+//   const andConditions = [];
+
+//   if (searchTerm) {
+//     andConditions.push({
+//       OR: subscriberSearchableFields.map((field) => ({
+//         [field]: {
+//           contains: searchTerm,
+//           mode: "insensitive",
+//         },
+//       })),
+//     });
+//   }
+
+//   if (Object.keys(filterData).length > 0) {
+//     andConditions.push({
+//       AND: Object.keys(filterData).map((key) => {
+//         return {
+//           [key]: {
+//             equals: (filterData as any)[key],
+//           },
+//         };
+//       }),
+//     });
+//   }
+//   andConditions.push({
+//     status: SubscriptionStatus.ACTIVE,
+//   });
+
+//   const whereConditions: Prisma.SubscriptionWhereInput =
+//     andConditions.length > 0 ? { AND: andConditions } : {};
+
+//   const result = await prisma.subscription.findMany({
+//     where: whereConditions,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : {
+//             createdAt: "desc",
+//           },
+//     include: {
+//       traveler: true,
+//       plan: true,
+//     },
+//   });
+//   const total = await prisma.subscription.count({
+//     where: whereConditions,
+//   });
+
+//   console.log({ result });
+
+//   return {
+//     meta: {
+//       page,
+//       limit,
+//       total,
+//     },
+//     data: result,
+//   };
+// };
+
 const getAllFromDB = async (
   filters: ISubscriberFilterRequest,
   options: IOptions
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
-  const { searchTerm, ...filterData } = filters;
 
-  const andConditions = [];
+  const andConditions: Prisma.SubscriptionWhereInput[] = [];
 
-  if (searchTerm) {
+  // searchTerm filter (searches in plan name)
+  if (filters.searchTerm) {
     andConditions.push({
-      OR: subscriberSearchableFields.map((field) => ({
-        [field]: {
-          contains: searchTerm,
+      plan: {
+        name: {
+          contains: filters.searchTerm,
           mode: "insensitive",
         },
-      })),
+      },
     });
   }
 
-  if (Object.keys(filterData).length > 0) {
+  // status filter
+  if (filters.status) {
     andConditions.push({
-      AND: Object.keys(filterData).map((key) => {
-        return {
-          [key]: {
-            equals: (filterData as any)[key],
-          },
-        };
-      }),
+      status: {
+        equals: filters.status,
+      },
     });
   }
-  andConditions.push({
-    status: SubscriptionStatus.ACTIVE,
-  });
+
+  // amount filter
+  if (filters.amount !== undefined) {
+    andConditions.push({
+      amount: {
+        equals: Number(filters.amount),
+      },
+    });
+  }
+
+  // planName filter (relation)
+  if (filters.planName) {
+    andConditions.push({
+      plan: {
+        name: {
+          equals: filters.planName,
+          mode: "insensitive",
+        },
+      },
+    });
+  }
 
   const whereConditions: Prisma.SubscriptionWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
@@ -158,19 +242,16 @@ const getAllFromDB = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
-          },
+        : { createdAt: "desc" },
     include: {
       traveler: true,
       plan: true,
     },
   });
+
   const total = await prisma.subscription.count({
     where: whereConditions,
   });
-
-  console.log({ result });
 
   return {
     meta: {
@@ -181,6 +262,75 @@ const getAllFromDB = async (
     data: result,
   };
 };
+
+// const getAllFromDB = async (
+//   filters: ISubscriberFilterRequest,
+//   options: IOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelper.calculatePagination(options);
+
+//   const andConditions: Prisma.SubscriptionWhereInput[] = [];
+
+//   // status filter
+//   if (filters.status) {
+//     andConditions.push({
+//       status: {
+//         equals: filters.status,
+//       },
+//     });
+//   }
+
+//   // amount filter
+//   if (filters.amount !== undefined) {
+//     andConditions.push({
+//       amount: {
+//         equals: Number(filters.amount),
+//       },
+//     });
+//   }
+
+//   // planName filter (relation)
+//   if (filters.planName) {
+//     andConditions.push({
+//       plan: {
+//         name: {
+//           equals: filters.planName,
+//           mode: "insensitive",
+//         },
+//       },
+//     });
+//   }
+
+//   const whereConditions: Prisma.SubscriptionWhereInput =
+//     andConditions.length > 0 ? { AND: andConditions } : {};
+
+//   const result = await prisma.subscription.findMany({
+//     where: whereConditions,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : { createdAt: "desc" },
+//     include: {
+//       traveler: true,
+//       plan: true,
+//     },
+//   });
+
+//   const total = await prisma.subscription.count({
+//     where: whereConditions,
+//   });
+
+//   return {
+//     meta: {
+//       page,
+//       limit,
+//       total,
+//     },
+//     data: result,
+//   };
+// };
 
 const getByIdFromDB = async (id: string) => {
   const result = await prisma.subscription.findUnique({

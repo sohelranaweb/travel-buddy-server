@@ -24,6 +24,44 @@ const createReview = catchAsync(
     });
   }
 );
+const createReviewAsHost = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const { travelBuddyId } = req.params;
+    const user = req.user;
+
+    const result = await ReviewService.createReviewAsHost(
+      user as IAuthUser,
+      travelBuddyId,
+      req.body
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Host Review created successfully",
+      data: result,
+    });
+  }
+);
+const createReviewAsBuddy = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const { travelBuddyId } = req.params;
+    const user = req.user;
+
+    const result = await ReviewService.createReviewAsBuddy(
+      user as IAuthUser,
+      travelBuddyId,
+      req.body
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Buddy Review created successfully",
+      data: result,
+    });
+  }
+);
 
 const getMyReviews = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
@@ -70,9 +108,48 @@ const getPendingReviews = catchAsync(
   }
 );
 
+const getPendingReviewAsHost = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    // console.log("🎯 getPendingReviewAsHost hit!");
+    const user = req.user;
+
+    const result = await ReviewService.getPendingReviewAsHost(
+      user as IAuthUser
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Host Pending reviews retrieved successfully",
+      data: result,
+    });
+  }
+);
+const getPendingReviewAsBuddy = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    // console.log("🎯 getPendingReviewAsHost hit!");
+    const user = req.user;
+
+    const result = await ReviewService.getPendingReviewAsBuddy(
+      user as IAuthUser
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Buddy Pending reviews retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 export const ReviewController = {
   createReview,
+  createReviewAsHost,
+  createReviewAsBuddy,
   getMyReviews,
   getReviewsIGave,
   getPendingReviews,
+  getPendingReviewAsHost,
+  getPendingReviewAsBuddy,
 };

@@ -1,5 +1,8 @@
+import { SubscriptionStatus } from "@prisma/client";
+
 export type ISubscriberFilterRequest = {
   searchTerm?: string | undefined;
-  amount?: string | undefined;
-  status?: string | undefined;
+  planName?: string | undefined;
+  amount?: number | undefined;
+  status?: SubscriptionStatus;
 };

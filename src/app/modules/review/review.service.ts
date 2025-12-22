@@ -285,9 +285,372 @@ const getPendingReviews = async (user: IAuthUser) => {
   return pendingReviews;
 };
 
+// const getPendingReviewAsHost = async (user: IAuthUser) => {
+//   const travelBuddies = await prisma.travelBuddy.findMany({
+//     where: {
+//       travelPlan: {
+//         traveler: {
+//           email: user?.email,
+//         },
+//       },
+//     },
+//     include: {
+//       travelPlan: {
+//         include: {
+//           traveler: {
+//             select: {
+//               id: true,
+//               name: true,
+//               email: true,
+//               profilePhoto: true,
+//             },
+//           },
+//         },
+//       },
+//       buddy: {
+//         select: {
+//           id: true,
+//           name: true,
+//           email: true,
+//           profilePhoto: true,
+//         },
+//       },
+//       reviews: true,
+//     },
+//     orderBy: {
+//       createdAt: "desc",
+//     },
+//   });
+
+//   return travelBuddies;
+// };
+
+const getPendingReviewAsHost = async (user: IAuthUser) => {
+  const reviewer = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  const travelBuddies = await prisma.travelBuddy.findMany({
+    where: {
+      travelPlan: {
+        traveler: {
+          email: user?.email,
+        },
+      },
+      // Shudhu segulo nao jekhane host (reviewerId) tar buddy ke (revieweeId) review dey ni
+      reviews: {
+        none: {
+          reviewerId: reviewer.id, // current user (host) as reviewer
+          revieweeId: {
+            not: reviewer.id, // buddy ke review dey ni (reviewee is not the host)
+          },
+        },
+      },
+    },
+    include: {
+      travelPlan: {
+        include: {
+          traveler: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      },
+      buddy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+      reviews: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return travelBuddies;
+};
+
+// const getPendingReviewAsBuddy = async (user: IAuthUser) => {
+//   const travelBuddies = await prisma.travelBuddy.findMany({
+//     where: {
+//       buddy: {
+//         email: user?.email,
+//       },
+//     },
+//     include: {
+//       travelPlan: {
+//         include: {
+//           traveler: {
+//             select: {
+//               id: true,
+//               name: true,
+//               email: true,
+//               profilePhoto: true,
+//             },
+//           },
+//         },
+//       },
+//       buddy: {
+//         select: {
+//           id: true,
+//           name: true,
+//           email: true,
+//           profilePhoto: true,
+//         },
+//       },
+//       reviews: true,
+//     },
+//     orderBy: {
+//       createdAt: "desc",
+//     },
+//   });
+
+//   return travelBuddies;
+// };
+
+const getPendingReviewAsBuddy = async (user: IAuthUser) => {
+  const reviewer = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+  const travelBuddies = await prisma.travelBuddy.findMany({
+    where: {
+      buddy: {
+        email: user?.email, // Current user as buddy
+      },
+      // Buddy (current user) host ke review dey ni
+      NOT: {
+        reviews: {
+          some: {
+            reviewerId: reviewer.id, // Current user (buddy) as reviewer
+            revieweeId: {
+              not: reviewer.id, // Reviewing the host (not self)
+            },
+          },
+        },
+      },
+    },
+    include: {
+      travelPlan: {
+        include: {
+          traveler: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      },
+      buddy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+      reviews: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return travelBuddies;
+};
+
+const createReviewAsHost = async (
+  user: IAuthUser,
+  travelBuddyId: string,
+  payload: {
+    rating: number;
+    comment?: string;
+  }
+) => {
+  const reviewer = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  // Validate rating
+  if (payload.rating < 1 || payload.rating > 5) {
+    throw new ApiError(400, "Rating must be between 1 and 5");
+  }
+
+  // Find the travel buddy relationship
+  const travelBuddy = await prisma.travelBuddy.findUnique({
+    where: { id: travelBuddyId },
+    include: {
+      travelPlan: true,
+      reviews: true,
+    },
+  });
+
+  if (!travelBuddy) {
+    throw new ApiError(404, "Travel buddy relationship not found");
+  }
+
+  // Check if the reviewer is the traveler (host)
+  if (travelBuddy.travelPlan.travelerId !== reviewer.id) {
+    throw new ApiError(
+      403,
+      "Only the traveler (host) can review their buddy using this endpoint"
+    );
+  }
+
+  // Check if travel is completed
+  if (travelBuddy.status !== "COMPLETED") {
+    throw new ApiError(400, "Reviews can only be created for completed trips");
+  }
+
+  // Check if host has already reviewed this buddy
+  const existingReview = travelBuddy.reviews.find(
+    (review) =>
+      review.reviewerId === reviewer.id &&
+      review.revieweeId === travelBuddy.buddyId
+  );
+
+  if (existingReview) {
+    throw new ApiError(
+      409,
+      "You have already reviewed this buddy for this trip"
+    );
+  }
+
+  // Create the review (Host reviewing Buddy)
+  const review = await prisma.review.create({
+    data: {
+      travelBuddyId: travelBuddyId,
+      reviewerId: reviewer.id, // Host (Buty)
+      revieweeId: travelBuddy.buddyId, // Buddy (Miza)
+      rating: payload.rating,
+      comment: payload.comment || "",
+    },
+    include: {
+      reviewer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+      reviewee: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+    },
+  });
+  return review;
+};
+const createReviewAsBuddy = async (
+  user: IAuthUser,
+  travelBuddyId: string,
+  payload: {
+    rating: number;
+    comment?: string;
+  }
+) => {
+  const reviewer = await prisma.traveler.findUniqueOrThrow({
+    where: { email: user?.email },
+  });
+
+  // Validate rating
+  if (payload.rating < 1 || payload.rating > 5) {
+    throw new ApiError(400, "Rating must be between 1 and 5");
+  }
+
+  // Find the travel buddy relationship
+  const travelBuddy = await prisma.travelBuddy.findUnique({
+    where: { id: travelBuddyId },
+    include: {
+      travelPlan: true,
+      reviews: true,
+    },
+  });
+
+  if (!travelBuddy) {
+    throw new ApiError(404, "Travel buddy relationship not found");
+  }
+
+  // Check if the reviewer is the traveler (host)
+  if (travelBuddy.buddyId !== reviewer.id) {
+    throw new ApiError(
+      403,
+      "Only the buddy can review the host using this endpoint"
+    );
+  }
+
+  // Check if travel is completed
+  if (travelBuddy.status !== "COMPLETED") {
+    throw new ApiError(400, "Reviews can only be created for completed trips");
+  }
+
+  // Check if host has already reviewed this buddy
+  const existingReview = travelBuddy.reviews.find(
+    (review) =>
+      review.reviewerId === reviewer.id &&
+      review.revieweeId === travelBuddy.travelPlan.travelerId
+  );
+
+  if (existingReview) {
+    throw new ApiError(
+      409,
+      "You have already reviewed this host for this trip"
+    );
+  }
+
+  // Create the review (Buddy reviewing Host)
+  const review = await prisma.review.create({
+    data: {
+      travelBuddyId: travelBuddyId,
+      reviewerId: reviewer.id, // Buddy (Miza)
+      revieweeId: travelBuddy.travelPlan.travelerId, // Host (Buty)
+      rating: payload.rating,
+      comment: payload.comment || "",
+    },
+    include: {
+      reviewer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+      reviewee: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+        },
+      },
+    },
+  });
+
+  return review;
+};
+
 export const ReviewService = {
   createReview,
+  createReviewAsHost,
+  createReviewAsBuddy,
   getMyReviews,
   getReviewsIGave,
   getPendingReviews,
+  getPendingReviewAsHost,
+  getPendingReviewAsBuddy,
 };
