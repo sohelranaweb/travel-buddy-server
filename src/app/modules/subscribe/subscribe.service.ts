@@ -352,7 +352,7 @@ const getMySubscription = async (user: IJwtPayload) => {
       // isSubscribed: true,
     },
   });
-  const result = await prisma.subscription.findFirstOrThrow({
+  const result = await prisma.subscription.findFirst({
     where: {
       travelerId: travelerInfo.id,
     },
