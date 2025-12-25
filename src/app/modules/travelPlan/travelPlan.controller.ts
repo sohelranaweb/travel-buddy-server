@@ -54,16 +54,19 @@ const getMytravelPlans = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
     // console.log("getMytravelPlan", req.user);
+    const filters = pick(req.query, travelPlanFilterableFields);
     const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
     const result = await TravelPlanService.getMyTravelPlans(
       user as IAuthUser,
+      filters,
       options
     );
     sendResponse(res, {
       statusCode: 200,
       success: true,
       message: "My Traveler Plan retrieved successfully",
-      data: result,
+      meta: result.meta,
+      data: result.data,
     });
   }
 );

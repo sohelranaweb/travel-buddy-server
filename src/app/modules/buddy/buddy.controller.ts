@@ -101,6 +101,7 @@ const getBuddyRequestById = catchAsync(
     });
   }
 );
+
 // Accept a buddy request
 const acceptBuddyRequestById = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {

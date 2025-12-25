@@ -217,17 +217,146 @@ const getTravelPlanById = async (travelPlanId: string) => {
   });
   return result;
 };
+
+// Get Traveler Own Plan
+// const getMyTravelPlans = async (
+//   user: IAuthUser,
+//   options: IPaginationOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelper.calculatePagination(options);
+//   const travelerInfo = await prisma.traveler.findUniqueOrThrow({
+//     where: { email: user?.email },
+//   });
+
+//   const travelPlans = await prisma.travelPlan.findMany({
+//     where: { travelerId: travelerInfo.id },
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : { createdAt: "desc" },
+//     include: {
+//       traveler: true,
+//     },
+//   });
+//   const total = await prisma.travelPlan.count({
+//     where: { travelerId: travelerInfo.id },
+//   });
+//   return {
+//     meta: {
+//       page,
+//       limit,
+//       total,
+//     },
+//     data: travelPlans,
+//   };
+// };
+
 const getMyTravelPlans = async (
   user: IAuthUser,
+  filters: ITravelPlanFilterRequest,
   options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filterData } = filters;
+
   const travelerInfo = await prisma.traveler.findUniqueOrThrow({
     where: { email: user?.email },
   });
 
+  const andConditions: Prisma.TravelPlanWhereInput[] = [];
+
+  // ---------------------------------------
+  // BASE CONDITION (User's own plans)
+  // ---------------------------------------
+  andConditions.push({
+    travelerId: travelerInfo.id,
+  });
+
+  // ---------------------------------------
+  // SEARCH (destination, description)
+  // ---------------------------------------
+  if (searchTerm) {
+    andConditions.push({
+      OR: travelPlanSearchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // ---------------------------------------
+  // BUDGET RANGE (budgetMin >= X, budgetMax <= Y)
+  // ---------------------------------------
+  if (filterData.budgetMin) {
+    andConditions.push({
+      budgetMin: {
+        gte: Number(filterData.budgetMin),
+      },
+    });
+  }
+
+  if (filterData.budgetMax) {
+    andConditions.push({
+      budgetMax: {
+        lte: Number(filterData.budgetMax),
+      },
+    });
+  }
+
+  // ---------------------------------------
+  // DATE RANGE (startDate, endDate)
+  // Accepts only YYYY-MM-DD
+  // ---------------------------------------
+  if (filterData.startDate) {
+    andConditions.push({
+      startDate: {
+        gte: new Date(`${filterData.startDate}T00:00:00.000Z`),
+      },
+    });
+  }
+
+  if (filterData.endDate) {
+    andConditions.push({
+      endDate: {
+        lte: new Date(`${filterData.endDate}T23:59:59.999Z`),
+      },
+    });
+  }
+
+  // ---------------------------------------
+  // STRICT FILTERS (travelType – Prisma Enum)
+  // ---------------------------------------
+  if (filterData.travelType) {
+    andConditions.push({
+      travelType: {
+        equals: filterData.travelType as TravelType,
+      },
+    });
+  }
+
+  // ---------------------------------------
+  // COMPLETION STATUS FILTER
+  // ---------------------------------------
+  if (filterData.isCompleted !== undefined) {
+    andConditions.push({
+      isCompleted:
+        filterData.isCompleted === "true" || filterData.isCompleted === true,
+    });
+  }
+
+  // FINAL WHERE CONDITIONS
+  const whereConditions: Prisma.TravelPlanWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  // ---------------------------------------
+  // QUERY
+  // ---------------------------------------
   const travelPlans = await prisma.travelPlan.findMany({
-    where: { travelerId: travelerInfo.id },
+    where: whereConditions,
     skip,
     take: limit,
     orderBy:
@@ -238,9 +367,12 @@ const getMyTravelPlans = async (
       traveler: true,
     },
   });
+
+  // TOTAL COUNT
   const total = await prisma.travelPlan.count({
-    where: { travelerId: travelerInfo.id },
+    where: whereConditions,
   });
+
   return {
     meta: {
       page,
@@ -250,6 +382,7 @@ const getMyTravelPlans = async (
     data: travelPlans,
   };
 };
+
 // const updateTravelPlan = async (user: IAuthUser) => {
 //   const updateTravelPlan = async (
 //     user: IAuthUser,

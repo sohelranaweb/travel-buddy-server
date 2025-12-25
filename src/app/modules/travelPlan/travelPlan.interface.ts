@@ -7,6 +7,7 @@ export type ITravelPlanFilterRequest = {
   budgetMin?: string | undefined;
   budgetMax?: string | undefined;
   travelType?: string | undefined;
+  isCompleted?: boolean | string;
 };
 
 export type ITravelPlan = {

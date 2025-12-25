@@ -9,4 +9,5 @@ export const travelPlanFilterableFields: string[] = [
   "budgetMin",
   "budgetMax",
   "travelType",
+  "isCompleted",
 ];

@@ -2,7 +2,6 @@ import { RequestStatus } from "@prisma/client";
 import ApiError from "../../errors/ApiError";
 import { IAuthUser } from "../../interfaces/common";
 import { prisma } from "../../shared/prisma";
-import { SendBuddyRequestInput } from "./buddy.interface";
 import httpStatus from "http-status";
 
 const sendBuddyRequest = async (
@@ -340,7 +339,6 @@ const acceptBuddyRequest = async (
     );
   }
   let result: any;
-  let rejectedCount = 0;
 
   // Start transaction
   await prisma.$transaction(async (tx) => {
@@ -379,51 +377,10 @@ const acceptBuddyRequest = async (
         },
       });
 
-      // Reject ALL OTHER pending requests for this plan
-      const rejectionResult = await tx.travelBuddyRequest.updateMany({
-        where: {
-          travelPlanId: request.travelPlanId,
-          id: { not: buddyRequestId },
-          status: RequestStatus.PENDING,
-        },
-        data: { status: RequestStatus.REJECTED },
-      });
-
-      rejectedCount = rejectionResult.count;
-
-      // Get details of rejected requests
-      const rejectedRequests = await tx.travelBuddyRequest.findMany({
-        where: {
-          travelPlanId: request.travelPlanId,
-          id: { not: buddyRequestId },
-          status: RequestStatus.REJECTED,
-        },
-        include: {
-          requester: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              profilePhoto: true,
-              bio: true,
-              averageRating: true,
-            },
-          },
-        },
-      });
-
       result = {
         acceptedRequest: updatedRequest,
         travelBuddy,
-        rejected: {
-          count: rejectedCount,
-          requests: rejectedRequests.map((req) => ({
-            id: req.id,
-            user: req.requester,
-            message: req.message,
-          })),
-        },
-        message: `Accepted ${updatedRequest.requester.name}. Rejected ${rejectedCount} other pending request(s).`,
+        message: `${updatedRequest.requester.name} is now your travel buddy!`,
       };
     } else {
       result = {
