@@ -63,6 +63,16 @@ const createReviewAsBuddy = catchAsync(
   }
 );
 
+const getAllReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getAllReviews();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All Reviews retrieved successfully",
+    data: result,
+  });
+});
 const getMyReviews = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
@@ -145,6 +155,7 @@ const getPendingReviewAsBuddy = catchAsync(
 
 export const ReviewController = {
   createReview,
+  getAllReviews,
   createReviewAsHost,
   createReviewAsBuddy,
   getMyReviews,

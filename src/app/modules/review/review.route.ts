@@ -7,6 +7,7 @@ import { ReviewValidation } from "./review.validation";
 import checkAuth from "../../middlewares/checkAuth";
 
 const router = express.Router();
+router.get("/", ReviewController.getAllReviews);
 // Get reviews I received
 router.get(
   "/my-reviews",
