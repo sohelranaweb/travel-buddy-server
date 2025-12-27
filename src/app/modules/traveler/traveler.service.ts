@@ -77,6 +77,28 @@ const getByIdFromDB = async (id: string): Promise<Traveler | null> => {
       id,
       isDeleted: false,
     },
+    include: {
+      travelPlans: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      reviewsReceived: {
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      },
+    },
   });
   return result;
 };
