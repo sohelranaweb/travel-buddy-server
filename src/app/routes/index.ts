@@ -9,6 +9,7 @@ import { AdminRoutes } from "../modules/admin/admin.route";
 import { BuddyRequestRoutes } from "../modules/buddy/buddy.route";
 import { TravelBuddyRoutes } from "../modules/travelBuddy/travelBuddy.route";
 import { ReviewRoutes } from "../modules/review/review.route";
+import { MetaRoutes } from "../modules/meta/meta.route";
 
 const router = express.Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/reviews",
     route: ReviewRoutes,
+  },
+  {
+    path: "/metaData",
+    route: MetaRoutes,
   },
 ];
 
